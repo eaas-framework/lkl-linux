@@ -1,0 +1,14 @@
+lkl-y += fs.o
+lkl-y += iomem.o
+lkl-y += net.o
+ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64 elf32-i386 elf64-x86-64-freebsd))
+lkl-y += posix-host.o
+else ifeq ($(OUTPUT_FORMAT),pe-i386)
+lkl-y += nt-host.o
+endif
+lkl-y += utils.o
+lkl-y += virtio_blk.o
+lkl-y += virtio.o
+ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64 elf32-i386 elf64-x86-64-freebsd))
+lkl-y += virtio_net.o
+endif

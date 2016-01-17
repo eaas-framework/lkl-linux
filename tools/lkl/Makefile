@@ -1,95 +1,83 @@
-CFLAGS := -Iinclude -Wall -g -O2 -Wextra -Wno-unused-parameter \
-	  -Wno-missing-field-initializers -fno-strict-aliasing
+# Do not use make's built-in rules
+# (this improves performance and avoids hard-to-debug behaviour);
+.SUFFIXES:
+MAKEFLAGS += -r
 
-ifdef CROSS_COMPILE
-CC=$(CROSS_COMPILE)gcc
-AR=$(CROSS_COMPILE)ar
-LD=$(CROSS_COMPILE)ld
+ifeq ($(V),1)
+  Q =
 else
-CC=gcc
+  Q = @
 endif
 
-OUTPUT_FORMAT=$(shell $(LD) -r -print-output-format)
+-include ../scripts/Makefile.include
+
+ifeq ($(srctree),)
+srctree := $(patsubst %/,%,$(dir $(shell pwd)))
+srctree := $(patsubst %/,%,$(dir $(srctree)))
+endif
+export srctree
+
+build := -f $(srctree)/tools/build/Makefile.build dir=. obj
+
+export CFLAGS += -Iinclude -Wall -g -O2 -Wextra -Wno-unused-parameter \
+	  -Wno-missing-field-initializers -fno-strict-aliasing
+
+export OUTPUT_FORMAT=$(shell $(LD) -r -print-output-format)
 
 TEST_TARGETS=test valgrind gdb
 
-lib_source = $(filter-out %-host.c,$(wildcard lib/*.c))
-source = $(wildcard tests/*.c)
-lib = lib/liblkl.a
 ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64 elf32-i386 elf64-x86-64-freebsd elf32-littlearm ))
-lib_source += lib/posix-host.c
 CFLAGS += -fPIC
-LDFLAGS += -lpthread
-ifeq (,$(shell $(CROSS_COMPILE)gcc -E -dM - < /dev/null | grep __ANDROID__))
-LDFLAGS += -lrt
-source += $(wildcard *.c)
-execs =  cpfromfs
-endif
-lib += lib/liblkl.so
+LDFLAGS += -lpthread -lrt
 else ifeq ($(OUTPUT_FORMAT),pe-i386)
-lib_source := $(filter-out virtio_net.c,$(lib_source))
-lib_source += lib/nt-host.c
 KOPT="KALLSYMS_EXTRA_PASS=1"
 LDFLAGS += -lws2_32
 else
 $(error Unrecognized platform: $(OUTPUT_FORMAT))
 endif
 
-ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64 elf64-x86-64-freebsd))
-CFLAGS += -D_FILE_OFFSET_BITS=64
-endif
 
-lib_objs = $(patsubst %.c,%.o, $(lib_source))
-objs = $(patsubst %.c,%.o, $(source))
-execs += $(patsubst %.c,%, $(source))
+ALL_PROGRAMS := lklfuse cptofs cpfromfs fs2tar
+ALL_LIBRARIES := liblkl.a liblkl.so liblkl-hijack.so
 
-ifeq ($(OUTPUT_FORMAT),elf64-x86-64)
-lib += lib/liblkl-hijack.so
-hijack_objs = $(patsubst %.c,%.o,$(wildcard lib/hijack/*.c))
-objs += $(hijack_objs)
-endif
+all: $(ALL_PROGRAMS) $(ALL_LIBRARIES)
 
-all: $(lib) $(execs)
-
-lib/liblkl.a: $(lib_objs) lib/lkl.o
-	$(AR) -rc $@ $^
-
-lib/liblkl.so: $(lib_objs) lib/lkl.o
-	$(CC) -o $@ -shared $^
-
-# order of -lxxx again really matters for LD_PRELOAD
-lib/liblkl-hijack.so: $(hijack_objs) Makefile lib/liblkl.so
-	$(CC) -shared -nodefaultlibs $(lib_objs) -Llib -llkl $(hijack_objs) \
-	-ldl -lpthread -lrt -o $@
+%-in.o: lib/lkl.o
+	$(Q)$(MAKE) $(build)=$*
 
 lib/lkl.o:
-	$(MAKE) -C ../.. ARCH=lkl defconfig
-	$(MAKE) -C ../.. ARCH=lkl $(KOPT) install INSTALL_PATH=$(PWD)
+	$(Q)$(MAKE) -C ../.. ARCH=lkl defconfig
+	$(Q)$(MAKE) -C ../.. ARCH=lkl $(KOPT) install INSTALL_PATH=$(PWD)
 
-%: %.o
-	$(CC) -o $@ $^ $(LDFLAGS)
+liblkl.a: lkl-in.o lib/lkl.o
+	$(Q)$(AR) -rc $@ $^
 
-$(lib_objs): lib/lkl.o
-$(objs): lib/lkl.o
-$(execs): lib/liblkl.a
+liblkl.so: lkl-in.o lib/lkl.o
+	$(Q)$(CC) -o $@ -shared $^
 
-host-clean:
-	-rm -rf include/lkl/ $(lib) $(lib_objs) lib/lkl.o $(objs) $(execs)
+liblkl-hijack.so: hijack-in.o liblkl.a
+	$(Q)$(CC) -shared -nodefaultlibs $^ -ldl $(LDFLAGS) -o $@
 
-clean: host-clean
-	$(MAKE) -C ../.. ARCH=lkl clean
+lklfuse: lklfuse-in.o liblkl.a
+	$(Q)$(CC) -o $@ $(LDFLAGS) -lfuse $^
 
-mrproper:
-	$(MAKE) -C ../.. mrproper
-
-fs2tar: LDFLAGS += -larchive
-lklfuse: LDFLAGS += -lfuse
 ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64-freebsd))
 cptofs: LDFLAGS += -largp
 fs2tar: LDFLAGS += -largp
 endif
+fs2tar: fs2tar-in.o liblkl.a
+	$(Q)$(CC) -o $@ $(LDFLAGS) -larchive $^
+
+cptofs: cptofs-in.o liblkl.a
+	$(Q)$(CC) -o $@ $(LDFLAGS) $^
+
 cpfromfs: cptofs
-	if ! [ -e $@ ]; then ln -s $< $@; fi
+	$(Q)if ! [ -e $@ ]; then ln -s $< $@; fi
+
+clean:
+	$(Q)find . -name '*.o' -delete -o -name '\.*.cmd' -delete -o -name '\.*.d' -delete
+	$(Q)-rm -r -f include/lkl/ $(ALL_PROGRAMS) $(ALL_LIBRARIES)
 
 $(TEST_TARGETS): all
 	$(MAKE) -C tests $@
+
