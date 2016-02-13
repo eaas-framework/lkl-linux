@@ -9,6 +9,8 @@ else
   Q = @
 endif
 
+all:
+
 -include ../scripts/Makefile.include
 
 ifeq ($(srctree),)
@@ -18,6 +20,21 @@ endif
 export srctree
 
 build := -f $(srctree)/tools/build/Makefile.build dir=. obj
+
+# we rely on the global Kconfig for the lkl host library
+KCONFIG_CONFIG        ?= $(srctree)/.config
+KCONFIG_AUTOHEADER    := $(srctree)/include/generated/autoconf.h
+KCONFIG_AUTOCONFIG    := $(srctree)/include/config/auto.conf
+
+# forward all config-related targets to the main Kernel makefile
+$(KCONFIG_AUTOCONFIG) $(KCONFIG_AUTOHEADER):
+	$(Q)$(MAKE) -C $(srctree) ARCH=lkl $@
+
+%config:
+	$(Q)$(MAKE) -C $(srctree) ARCH=lkl $@
+
+# include kernel config
+include $(KCONFIG_AUTOCONFIG)
 
 export CFLAGS += -Iinclude -Wall -g -O2 -Wextra -Wno-unused-parameter \
 	  -Wno-missing-field-initializers -fno-strict-aliasing
