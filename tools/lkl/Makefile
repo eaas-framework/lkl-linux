@@ -33,6 +33,9 @@ export KCONFIG_AUTOHEADER
 $(KCONFIG_AUTOCONFIG) $(KCONFIG_AUTOHEADER): $(KCONFIG_CONFIG)
 	$(Q)$(MAKE) -C $(srctree) ARCH=lkl $@
 
+config:
+	$(Q)$(MAKE) -C $(srctree) ARCH=lkl $@
+
 %config:
 	$(Q)$(MAKE) -C $(srctree) ARCH=lkl $@
 
