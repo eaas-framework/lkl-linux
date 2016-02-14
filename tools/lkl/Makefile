@@ -89,33 +89,33 @@ lib/lkl.o:
 	$(Q)$(MAKE) -C ../.. ARCH=lkl $(KOPT) install INSTALL_PATH=$(PWD)
 
 liblkl.a: lkl-in.o lib/lkl.o
-	$(Q)$(AR) -rc $@ $^
+	$(QUIET_AR)$(AR) -rc $@ $^
 
 liblkl.so: lkl-in.o lib/lkl.o
-	$(Q)$(CC) -o $@ -shared $^
+	$(QUIET_LINK)$(CC) -o $@ -shared $^
 
 liblkl-hijack.so: hijack-in.o liblkl.a
-	$(Q)$(CC) -shared -nodefaultlibs $^ -ldl $(LDFLAGS) -o $@
+	$(QUIET_LINK)$(CC) -shared -nodefaultlibs $^ -ldl $(LDFLAGS) -o $@
 
 lklfuse: lklfuse-in.o liblkl.a
-	$(Q)$(CC) -o $@ $(LDFLAGS) -lfuse $^
+	$(QUIET_LINK)$(CC) -o $@ $(LDFLAGS) -lfuse $^
 
 ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64-freebsd))
 cptofs: LDFLAGS += -largp
 fs2tar: LDFLAGS += -largp
 endif
 fs2tar: fs2tar-in.o liblkl.a
-	$(Q)$(CC) -o $@ $(LDFLAGS) -larchive $^
+	$(QUIET_LINK)$(CC) -o $@ $(LDFLAGS) -larchive $^
 
 cptofs: cptofs-in.o liblkl.a
-	$(Q)$(CC) -o $@ $(LDFLAGS) $^
+	$(QUIET_LINK)$(CC) -o $@ $(LDFLAGS) $^
 
 cpfromfs: cptofs
 	$(Q)if ! [ -e $@ ]; then ln -s $< $@; fi
 
 clean:
 	$(Q)find . -name '*.o' -delete -o -name '\.*.cmd' -delete -o -name '\.*.d' -delete
-	$(Q)-rm -r -f include/lkl/ $(ALL_PROGRAMS) $(ALL_LIBRARIES)
+	$(call QUIET_CLEAN, core-progs) rm -r -f include/lkl/ $(ALL_PROGRAMS) $(ALL_LIBRARIES)
 
 $(TEST_TARGETS): all
 	$(MAKE) -C tests $@
