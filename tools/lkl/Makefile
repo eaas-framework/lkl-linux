@@ -26,6 +26,9 @@ KCONFIG_CONFIG        ?= $(srctree)/.config
 KCONFIG_AUTOHEADER    := $(srctree)/include/generated/autoconf.h
 KCONFIG_AUTOCONFIG    := $(srctree)/include/config/auto.conf
 
+export KCONFIG_AUTOCONFIG
+export KCONFIG_AUTOHEADER
+
 # forward all config-related targets to the main Kernel makefile
 $(KCONFIG_AUTOCONFIG) $(KCONFIG_AUTOHEADER):
 	$(Q)$(MAKE) -C $(srctree) ARCH=lkl $@
@@ -54,8 +57,27 @@ $(error Unrecognized platform: $(OUTPUT_FORMAT))
 endif
 
 
-ALL_PROGRAMS := lklfuse cptofs cpfromfs fs2tar
-ALL_LIBRARIES := liblkl.a liblkl.so liblkl-hijack.so
+ALL_PROGRAMS := 
+ifeq (y,$(CONFIG_LKL_FUSE))
+ALL_PROGRAMS += lklfuse
+endif
+ifeq (y,$(CONFIG_LKL_CPTOFS))
+ALL_PROGRAMS += cptofs cpfromfs
+endif
+ifeq (y,$(CONFIG_LKL_FS2TAR))
+ALL_PROGRAMS += fs2tar
+endif
+
+ALL_LIBRARIES := 
+ifeq (y,$(CONFIG_LKL_STATIC))
+ALL_LIBRARIES += liblkl.a
+endif
+ifeq (y,$(CONFIG_LKL_SHARED))
+ALL_LIBRARIES += liblkl.so
+endif
+ifeq (y,$(CONFIG_LKL_HIJACK))
+ALL_LIBRARIES += liblkl-hijack.so
+endif
 
 all: $(ALL_PROGRAMS) $(ALL_LIBRARIES)
 
