@@ -30,7 +30,7 @@ export KCONFIG_AUTOCONFIG
 export KCONFIG_AUTOHEADER
 
 # forward all config-related targets to the main Kernel makefile
-$(KCONFIG_AUTOCONFIG) $(KCONFIG_AUTOHEADER):
+$(KCONFIG_AUTOCONFIG) $(KCONFIG_AUTOHEADER): $(KCONFIG_CONFIG)
 	$(Q)$(MAKE) -C $(srctree) ARCH=lkl $@
 
 %config:
