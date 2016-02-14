@@ -1,7 +1,8 @@
 # Do not use make's built-in rules
 # (this improves performance and avoids hard-to-debug behaviour);
+# also do not print "Entering directory..." messages from make
 .SUFFIXES:
-MAKEFLAGS += -r
+MAKEFLAGS += -r --no-print-directory 
 
 ifeq ($(V),1)
   Q =
