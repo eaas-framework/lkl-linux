@@ -10,6 +10,8 @@ else
   Q = @
 endif
 
+NON_CONFIG_TARGETS := clean config %config
+
 all:
 
 -include ../scripts/Makefile.include
@@ -42,8 +44,10 @@ config:
 %config:
 	$(Q)$(MAKE) -C $(srctree) ARCH=lkl $@
 
-# include kernel config
-include $(KCONFIG_AUTOCONFIG)
+ifneq ($(filter-out $(NON_CONFIG_TARGETS),$(MAKECMDGOALS)),)
+  # include kernel config
+  include $(KCONFIG_AUTOCONFIG)
+endif
 
 export CFLAGS += -Iinclude -Wall -g -O2 -Wextra -Wno-unused-parameter \
 	  -Wno-missing-field-initializers -fno-strict-aliasing
