@@ -90,8 +90,7 @@ all: $(ALL_PROGRAMS) $(ALL_LIBRARIES)
 %-in.o: lib/lkl.o
 	$(Q)$(MAKE) $(build)=$*
 
-lib/lkl.o:
-	$(Q)$(MAKE) -C ../.. ARCH=lkl defconfig
+lib/lkl.o: $(KCONFIG_AUTOCONFIG)
 	$(Q)$(MAKE) -C ../.. ARCH=lkl $(KOPT) install INSTALL_PATH=$(PWD)
 
 liblkl.a: lkl-in.o lib/lkl.o
