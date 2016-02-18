@@ -12,6 +12,14 @@ endif
 
 NON_CONFIG_TARGETS := clean config %config
 
+# By default we want to use gcc (as does Linux), especially as the clang
+# cross toolchain does not use prefixed names
+CC    := $(CROSS_COMPILE)gcc
+LD    := $(CROSS_COMPILE)$(LD)
+AR    := $(CROSS_COMPILE)$(AR)
+
+export CC LD AR
+
 all:
 
 -include ../scripts/Makefile.include
