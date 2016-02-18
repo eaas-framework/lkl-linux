@@ -64,9 +64,11 @@ export OUTPUT_FORMAT=$(shell $(LD) -r -print-output-format)
 
 TEST_TARGETS=test valgrind gdb
 
-ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64 elf32-i386 elf64-x86-64-freebsd elf32-littlearm ))
+ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64 elf32-i386 elf64-x86-64-freebsd))
 CFLAGS += -fPIC
 LDFLAGS += -lpthread -lrt
+else ifeq ($(OUTPUT_FORMAT),elf32-littlearm)
+CFLAGS += -fPIC
 else ifeq ($(OUTPUT_FORMAT),pe-i386)
 KOPT="KALLSYMS_EXTRA_PASS=1"
 LDFLAGS += -lws2_32
