@@ -101,7 +101,7 @@ liblkl.a: lkl-in.o lib/lkl.o
 	$(QUIET_AR)$(AR) -rc $@ $^
 
 liblkl.so: lkl-in.o lib/lkl.o
-	$(QUIET_LINK)$(CC) -o $@ -shared $^
+	$(QUIET_LINK)$(CC) -shared $^ $(LDFLAGS) -o $@
 
 liblkl-hijack.so: hijack-in.o liblkl.a
 	$(QUIET_LINK)$(CC) -shared -nodefaultlibs $^ -ldl $(LDFLAGS) -o $@
