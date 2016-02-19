@@ -69,12 +69,12 @@ TEST_TARGETS=test valgrind gdb
 
 ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64 elf32-i386 elf64-x86-64-freebsd))
 CFLAGS += -fPIC
-LDFLAGS += -lpthread -lrt
+LDLIBS += -lpthread -lrt
 else ifeq ($(OUTPUT_FORMAT),elf32-littlearm)
 CFLAGS += -fPIC
 else ifeq ($(OUTPUT_FORMAT),pe-i386)
 KOPT="KALLSYMS_EXTRA_PASS=1"
-LDFLAGS += -lws2_32
+LDLIBS += -lws2_32
 EXESUF   := .exe
 SOSUF    := .dll
 else
@@ -116,23 +116,23 @@ liblkl.a: lkl-in.o lib/lkl.o
 	$(QUIET_AR)$(AR) -rc $@ $^
 
 liblkl$(SOSUF): lkl-in.o lib/lkl.o
-	$(QUIET_LINK)$(CC) -shared $^ $(LDFLAGS) -o $@
+	$(QUIET_LINK)$(CC) -shared $^ $(LDLIBS) -o $@
 
 liblkl-hijack$(SOSUF): hijack-in.o liblkl.a
-	$(QUIET_LINK)$(CC) -shared -nodefaultlibs $^ -ldl $(LDFLAGS) -o $@
+	$(QUIET_LINK)$(CC) -shared -nodefaultlibs $^ -ldl $(LDLIBS) -o $@
 
 lklfuse$(EXESUF): lklfuse-in.o liblkl.a
-	$(QUIET_LINK)$(CC) -o $@ $(LDFLAGS) -lfuse $^
+	$(QUIET_LINK)$(CC) -o $@ $(LDLIBS) -lfuse $^
 
 ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64-freebsd))
-cptofs$(EXESUF): LDFLAGS += -largp
-fs2tar$(EXESUF): LDFLAGS += -largp
+cptofs$(EXESUF): LDLIBS += -largp
+fs2tar$(EXESUF): LDLIBS += -largp
 endif
 fs2tar$(EXESUF): fs2tar-in.o liblkl.a
-	$(QUIET_LINK)$(CC) -o $@ $(LDFLAGS) -larchive $^
+	$(QUIET_LINK)$(CC) -o $@ $(LDLIBS) -larchive $^
 
 cptofs$(EXESUF): cptofs-in.o liblkl.a
-	$(QUIET_LINK)$(CC) -o $@ $(LDFLAGS) $^
+	$(QUIET_LINK)$(CC) -o $@ $(LDLIBS) $^
 
 cpfromfs$(EXESUF): cptofs$(EXESUF)
 	$(Q)if ! [ -e $@ ]; then ln -s $< $@; fi
