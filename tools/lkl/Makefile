@@ -20,6 +20,9 @@ AR    := $(CROSS_COMPILE)$(AR)
 
 export CC LD AR
 
+EXESUF   := 
+SOSUF    := .so
+
 all:
 
 -include ../scripts/Makefile.include
@@ -72,6 +75,8 @@ CFLAGS += -fPIC
 else ifeq ($(OUTPUT_FORMAT),pe-i386)
 KOPT="KALLSYMS_EXTRA_PASS=1"
 LDFLAGS += -lws2_32
+EXESUF   := .exe
+SOSUF    := .dll
 else
 $(error Unrecognized platform: $(OUTPUT_FORMAT))
 endif
@@ -79,13 +84,13 @@ endif
 
 ALL_PROGRAMS := 
 ifeq (y,$(CONFIG_LKL_FUSE))
-ALL_PROGRAMS += lklfuse
+ALL_PROGRAMS += lklfuse$(EXESUF)
 endif
 ifeq (y,$(CONFIG_LKL_CPTOFS))
-ALL_PROGRAMS += cptofs cpfromfs
+ALL_PROGRAMS += cptofs$(EXESUF) cpfromfs$(EXESUF)
 endif
 ifeq (y,$(CONFIG_LKL_FS2TAR))
-ALL_PROGRAMS += fs2tar
+ALL_PROGRAMS += fs2tar$(EXESUF)
 endif
 
 ALL_LIBRARIES := 
@@ -93,10 +98,10 @@ ifeq (y,$(CONFIG_LKL_STATIC))
 ALL_LIBRARIES += liblkl.a
 endif
 ifeq (y,$(CONFIG_LKL_SHARED))
-ALL_LIBRARIES += liblkl.so
+ALL_LIBRARIES += liblkl$(SOSUF)
 endif
 ifeq (y,$(CONFIG_LKL_HIJACK))
-ALL_LIBRARIES += liblkl-hijack.so
+ALL_LIBRARIES += liblkl-hijack$(SOSUF)
 endif
 
 all: $(ALL_PROGRAMS) $(ALL_LIBRARIES)
@@ -110,26 +115,26 @@ lib/lkl.o: $(KCONFIG_AUTOCONFIG)
 liblkl.a: lkl-in.o lib/lkl.o
 	$(QUIET_AR)$(AR) -rc $@ $^
 
-liblkl.so: lkl-in.o lib/lkl.o
+liblkl$(SOSUF): lkl-in.o lib/lkl.o
 	$(QUIET_LINK)$(CC) -shared $^ $(LDFLAGS) -o $@
 
-liblkl-hijack.so: hijack-in.o liblkl.a
+liblkl-hijack$(SOSUF): hijack-in.o liblkl.a
 	$(QUIET_LINK)$(CC) -shared -nodefaultlibs $^ -ldl $(LDFLAGS) -o $@
 
-lklfuse: lklfuse-in.o liblkl.a
+lklfuse$(EXESUF): lklfuse-in.o liblkl.a
 	$(QUIET_LINK)$(CC) -o $@ $(LDFLAGS) -lfuse $^
 
 ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64-freebsd))
-cptofs: LDFLAGS += -largp
-fs2tar: LDFLAGS += -largp
+cptofs$(EXESUF): LDFLAGS += -largp
+fs2tar$(EXESUF): LDFLAGS += -largp
 endif
-fs2tar: fs2tar-in.o liblkl.a
+fs2tar$(EXESUF): fs2tar-in.o liblkl.a
 	$(QUIET_LINK)$(CC) -o $@ $(LDFLAGS) -larchive $^
 
-cptofs: cptofs-in.o liblkl.a
+cptofs$(EXESUF): cptofs-in.o liblkl.a
 	$(QUIET_LINK)$(CC) -o $@ $(LDFLAGS) $^
 
-cpfromfs: cptofs
+cpfromfs$(EXESUF): cptofs$(EXESUF)
 	$(Q)if ! [ -e $@ ]; then ln -s $< $@; fi
 
 clean:
