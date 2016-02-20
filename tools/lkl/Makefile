@@ -118,6 +118,10 @@ all: $(ALL_PROGRAMS) $(ALL_LIBRARIES)
 lib/lkl.o: $(KCONFIG_AUTOCONFIG)
 	$(Q)$(MAKE) -C ../.. ARCH=lkl $(KOPT) install INSTALL_PATH=$(PWD)
 
+static: liblkl.a
+shared: liblkl$(SOSUF)
+hijack: liblkl-hijack$(SOSUF)
+
 liblkl.a: lkl-in.o lib/lkl.o
 	$(QUIET_AR)$(AR) -rc $@ $^
 
