@@ -23,6 +23,8 @@ export CC LD AR
 EXESUF   := 
 SOSUF    := .so
 
+PREFIX=/usr
+
 all:
 
 -include ../scripts/Makefile.include
@@ -157,5 +159,25 @@ clean:
 $(TEST_TARGETS): all
 	$(MAKE) -C tests $@
 
+headers_install:
+	$(call QUIET_INSTALL, headers) \
+	    install -d $(DESTDIR)$(PREFIX)/include ; \
+	    install -m 644 include/lkl.h include/lkl_host.h $(DESTDIR)$(PREFIX)/include ; \
+	    cp -r include/lkl $(DESTDIR)$(PREFIX)/include
+
+libraries_install: $(ALL_LIBRARIES)
+	$(call QUIET_INSTALL, libraries) \
+	    install -d $(DESTDIR)$(PREFIX)/lib ; \
+	    install -m 644 $(ALL_LIBRARIES) $(DESTDIR)$(PREFIX)/lib
+
+programs_install: $(ALL_PROGRAMS)
+	$(call QUIET_INSTALL, programs) \
+	    install -d $(DESTDIR)$(PREFIX)/bin ; \
+	    install -m 755 $(ALL_PROGRAMS) $(DESTDIR)$(PREFIX)/bin
+
+install: headers_install libraries_install programs_install
+
+
 FORCE: ;
 .PHONY: all clean $(TEST_TARGETS) FORCE
+.PHONY: headers_install libraries_install programs_install install
