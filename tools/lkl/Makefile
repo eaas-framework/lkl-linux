@@ -149,7 +149,10 @@ cpfromfs$(EXESUF): cptofs$(EXESUF)
 
 clean:
 	$(Q)find . -name '*.o' -delete -o -name '\.*.cmd' -delete -o -name '\.*.d' -delete
-	$(call QUIET_CLEAN, core-progs) rm -r -f include/lkl/ $(ALL_PROGRAMS) $(ALL_LIBRARIES)
+	$(call QUIET_CLEAN, headers)$(RM) -r include/lkl/
+	$(call QUIET_CLEAN, "host libraries")$(RM) liblkl.a liblkl$(SOSUF)
+	$(call QUIET_CLEAN, "hijack library")$(RM) liblkl-hijack$(SOSUF)
+	$(call QUIET_CLEAN, programs)$(RM) lklfuse$(EXESUF) fs2tar$(EXESUF) cptofs$(EXESUF) cpfromfs$(EXESUF)
 
 $(TEST_TARGETS): all
 	$(MAKE) -C tests $@
