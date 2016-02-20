@@ -46,7 +46,7 @@ export KCONFIG_AUTOCONFIG KCONFIG_AUTOHEADER
 # unneccessary re-configuration of the kernel tree
 NON_CONFIG_TARGETS := clean config %config
 
-ifneq ($(filter-out $(NON_CONFIG_TARGETS),$(MAKECMDGOALS)),)
+ifneq (,$(filter-out $(NON_CONFIG_TARGETS),$(MAKECMDGOALS)))
   # include kernel config
   include $(KCONFIG_AUTOCONFIG)
 else ifeq ($(MAKECMDGOALS),)
@@ -66,10 +66,10 @@ ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64 elf32-i386 elf64-x86-64-freebsd))
   CFLAGS   += -fPIC -pthread
   LDLIBS   += -lrt
   export CONFIG_LKL_AUTO_POSIX_HOST=y
-else ifeq ($(OUTPUT_FORMAT),elf32-littlearm)
+else ifneq (,$(filter $(OUTPUT_FORMAT),elf32-littlearm))
   CFLAGS   += -fPIC
   export CONFIG_LKL_AUTO_POSIX_HOST=y
-else ifeq ($(OUTPUT_FORMAT),pe-i386)
+else ifneq (,$(filter $(OUTPUT_FORMAT),pe-i386))
   KOPT      = "KALLSYMS_EXTRA_PASS=1"
   LDLIBS   += -lws2_32
   EXESUF   := .exe
