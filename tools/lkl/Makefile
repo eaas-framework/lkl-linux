@@ -118,7 +118,7 @@ all: $(ALL_PROGRAMS) $(ALL_LIBRARIES)
 	$(Q)$(MAKE) $(build)=$*
 
 lib/lkl.o: $(KCONFIG_AUTOCONFIG)
-	$(Q)$(MAKE) -C ../.. ARCH=lkl $(KOPT) install INSTALL_PATH=$(PWD)
+	$(Q)$(MAKE) -C ../.. ARCH=lkl $(KOPT) install INSTALL_PATH=$(CURDIR)
 
 static: liblkl.a
 shared: liblkl$(SOSUF)
