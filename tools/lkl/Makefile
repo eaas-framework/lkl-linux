@@ -58,6 +58,9 @@ config: FORCE
 ifneq ($(filter-out $(NON_CONFIG_TARGETS),$(MAKECMDGOALS)),)
   # include kernel config
   include $(KCONFIG_AUTOCONFIG)
+else ifeq ($(MAKECMDGOALS),)
+  # include kernel config
+  include $(KCONFIG_AUTOCONFIG)
 endif
 
 export CFLAGS += -Iinclude -Wall -g -O2 -Wextra -Wno-unused-parameter \
