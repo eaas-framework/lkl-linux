@@ -27,7 +27,7 @@ SOSUF    := .so
 
 PREFIX   := /usr
 
-ifeq (,$(srctree),)
+ifeq (,$(srctree))
   srctree := $(patsubst %/,%,$(dir $(shell pwd)))
   srctree := $(patsubst %/,%,$(dir $(srctree)))
 endif
