@@ -49,10 +49,10 @@ $(KCONFIG_AUTOCONFIG) $(KCONFIG_AUTOHEADER): $(KCONFIG_CONFIG)
 
 $(KCONFIG_CONFIG): ;
 
-config:
+config: FORCE
 	$(Q)$(MAKE) -C $(srctree) ARCH=lkl $@
 
-%config:
+%config: FORCE
 	$(Q)$(MAKE) -C $(srctree) ARCH=lkl $@
 
 ifneq ($(filter-out $(NON_CONFIG_TARGETS),$(MAKECMDGOALS)),)
@@ -106,7 +106,7 @@ endif
 
 all: $(ALL_PROGRAMS) $(ALL_LIBRARIES)
 
-%-in.o: lib/lkl.o
+%-in.o: lib/lkl.o FORCE
 	$(Q)$(MAKE) $(build)=$*
 
 lib/lkl.o: $(KCONFIG_AUTOCONFIG)
@@ -144,3 +144,5 @@ clean:
 $(TEST_TARGETS): all
 	$(MAKE) -C tests $@
 
+FORCE: ;
+.PHONY: all clean $(TEST_TARGETS) FORCE
