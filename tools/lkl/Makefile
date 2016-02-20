@@ -73,13 +73,16 @@ TEST_TARGETS=test valgrind gdb
 ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64 elf32-i386 elf64-x86-64-freebsd))
 CFLAGS += -fPIC
 LDLIBS += -lpthread -lrt
+export CONFIG_LKL_AUTO_POSIX_HOST=y
 else ifeq ($(OUTPUT_FORMAT),elf32-littlearm)
 CFLAGS += -fPIC
+export CONFIG_LKL_AUTO_POSIX_HOST=y
 else ifeq ($(OUTPUT_FORMAT),pe-i386)
 KOPT="KALLSYMS_EXTRA_PASS=1"
 LDLIBS += -lws2_32
 EXESUF   := .exe
 SOSUF    := .dll
+export CONFIG_LKL_AUTO_NT_HOST=y
 else
 $(error Unrecognized platform: $(OUTPUT_FORMAT))
 endif

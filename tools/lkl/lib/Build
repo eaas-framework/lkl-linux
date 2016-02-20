@@ -3,14 +3,9 @@ include $(KCONFIG_AUTOCONFIG)
 lkl-y += fs.o
 lkl-y += iomem.o
 lkl-y += net.o
-ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64 elf32-i386 elf64-x86-64-freebsd elf32-littlearm))
-lkl-y += posix-host.o
-else ifeq ($(OUTPUT_FORMAT),pe-i386)
-lkl-y += nt-host.o
-endif
+lkl-$(CONFIG_LKL_AUTO_POSIX_HOST) += posix-host.o
+lkl-$(CONFIG_LKL_AUTO_NT_HOST) += nt-host.o
 lkl-y += utils.o
 lkl-y += virtio_blk.o
 lkl-y += virtio.o
-ifneq (,$(filter $(OUTPUT_FORMAT),elf64-x86-64 elf32-i386 elf64-x86-64-freebsd elf32-littlearm))
-lkl-y += virtio_net.o
-endif
+lkl-$(CONFIG_LKL_AUTO_POSIX_HOST) += virtio_net.o
